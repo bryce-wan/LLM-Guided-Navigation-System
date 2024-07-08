@@ -1,0 +1,90 @@
+%YAML:1.0
+
+#--------------------------------------------------------------------------------------------
+# Camera Parameters. Adjust them!
+#--------------------------------------------------------------------------------------------
+
+# Camera calibration and distortion parameters (OpenCV) 
+Camera.fx: 299.378417
+Camera.fy: 302.613555
+Camera.cx: 299.378448
+Camera.cy: 125.122444
+
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+Camera.p2: 0.0
+Camera.k3: 0.0
+
+Camera.width: 424
+Camera.height: 240
+
+# Camera frames per second 
+Camera.fps: 30.0
+
+# IR projector baseline times fx (aprox.) D435:0.05(50mm)*fx
+Camera.bf: 15.0
+
+# Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
+Camera.RGB: 0
+
+# Close/Far threshold. Baseline times.
+ThDepth: 40.0
+
+# Deptmap values factor 
+DepthMapFactor: 1000.0
+
+
+#Parameters about the camera and ground plane, used to transfer the occupancy map parallel to the ground
+Camera.toGround.theta: -1.51 #the tum dataset is 1.06
+Camera.toGround.height: 2.10
+
+#--------------------------------------------------------------------------------------------
+# ORB Parameters
+#--------------------------------------------------------------------------------------------
+
+# ORB Extractor: Number of features per image
+ORBextractor.nFeatures: 2000
+
+# ORB Extractor: Scale factor between levels in the scale pyramid 	
+ORBextractor.scaleFactor: 1.2
+
+# ORB Extractor: Number of levels in the scale pyramid	
+ORBextractor.nLevels: 8
+
+# ORB Extractor: Fast threshold
+# Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
+# Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
+# You can lower these values if your images have low contrast			
+ORBextractor.iniThFAST: 20
+ORBextractor.minThFAST: 4
+
+#--------------------------------------------------------------------------------------------
+# Viewer Parameters
+#--------------------------------------------------------------------------------------------
+Viewer.KeyFrameSize: 0.05
+Viewer.KeyFrameLineWidth: 1
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize: 2
+Viewer.CameraSize: 0.08
+Viewer.CameraLineWidth: 3
+Viewer.ViewpointX: 0
+Viewer.ViewpointY: -0.7
+Viewer.ViewpointZ: -1.8
+Viewer.ViewpointF: 500
+
+#--------------------------------------------------------------------------------------------
+# pointcloud Parameters
+#--------------------------------------------------------------------------------------------
+PointCloudMapping.Resolution: 0.01
+
+#--------------------------------------------------------------------------------------------
+# save Parameters   0: don't save, 1: save
+#--------------------------------------------------------------------------------------------
+SaveFile.SavePose: 0
+SaveFile.SaveMap: 1
+
+#--------------------------------------------------------------------------------------------
+# unitree H1  camera flip  0: don't flip, 1: flip 180 degrees
+#--------------------------------------------------------------------------------------------
+UnitreeH1.flip: 0

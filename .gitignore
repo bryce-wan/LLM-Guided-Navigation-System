@@ -1,0 +1,7 @@
+bin/
+build/
+control_go2/catkin_ws/build
+control_go2/catkin_ws/devel
+control_aliengo/catkin_ws/build
+control_aliengo/catkin_ws/devel
+Examples/ROS/ORB_SLAM2/build/
