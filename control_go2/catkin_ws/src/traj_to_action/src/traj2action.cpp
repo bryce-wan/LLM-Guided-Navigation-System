@@ -3,12 +3,12 @@
 #include <math.h>
 #include <eigen3/Eigen/Eigen>
 
-// go2 communication
+// Go2 DDS communication
 #include "unitree/robot/channel/channel_subscriber.hpp"
 #include "unitree/robot/channel/channel_publisher.hpp"
 #include <unitree/idl/go2/SportModeState_.hpp>
 
-// ros communication    
+// ROS communication    
 #include <ros/ros.h>
 #include <message_filters/subscriber.h>
 #include <geometry_msgs/Polygon.h>
@@ -17,36 +17,32 @@
 
 using namespace unitree::common;
 
-// global
-// boost::mutex traj_mutex;
 constexpr char TARGET_TRAJ_TOPIC[] = "/traj";
 constexpr char TARGET_IP[] = "192.168.123.220";
 
-namespace EXTRA_FUNT
-{
-    bool areVectorsEqual(const std::vector<Eigen::Vector2d>& a, const std::vector<Eigen::Vector2d>& b)
-    {
-        if (a.size() != b.size())
-            return false;
+// namespace EXTRA_FUNT
+// {
+//     bool areVectorsEqual(const std::vector<Eigen::Vector2d>& a, const std::vector<Eigen::Vector2d>& b)
+//     {
+//         if (a.size() != b.size())
+//             return false;
 
-        for (size_t i = 0; i < a.size(); ++i)
-        {
-            if (!a[i].isApprox(b[i]))
-                return false;
-        }
-        return true;
-    }
-}
-
+//         for (size_t i = 0; i < a.size(); ++i)
+//         {
+//             if (!a[i].isApprox(b[i]))
+//                 return false;
+//         }
+//         return true;
+//     }
+// }
 
 class Custom
 {
 public:
     Custom() 
     {
-        // ????
-        sport_client.SetTimeout(10.0f);
-        sport_client.Init();
+        // sport_client.SetTimeout(10.0f);
+        // sport_client.Init();
 
         suber.reset(new unitree::robot::ChannelSubscriber<unitree_go::msg::dds_::SportModeState_>(TOPIC_HIGHSTATE));
         suber->InitChannel(std::bind(&Custom::HighStateHandler, this, std::placeholders::_1), 1);
@@ -66,7 +62,7 @@ public:
     unitree_go::msg::dds_::SportModeState_ state;
     unitree::robot::go2::SportClient sport_client;
     unitree::robot::ChannelSubscriberPtr<unitree_go::msg::dds_::SportModeState_> suber;
-    unitree::robot::ChannelPublisherPtr<unitree_go::msg::dds_::SportModeState_> puber;
+    // unitree::robot::ChannelPublisherPtr<unitree_go::msg::dds_::SportModeState_> puber;
 
     int c = 0;
     float dt = 0.002; // 0.001~0.01
@@ -96,7 +92,8 @@ void Custom::HighStateHandler(const void *message)
 // Control the robot
 void Custom::Traj2Action()
 {
-    if(receive_flag)
+    // if(receive_flag)
+    if(true)
     {
         // boost::mutex::scoped_lock lock(traj_mutex);
 
@@ -108,20 +105,21 @@ void Custom::Traj2Action()
         static float count = 0;
         count += dt;
         
-        unitree::robot::go2::PathPoint p;
         std::vector<unitree::robot::go2::PathPoint> path;
 
         for (int i = 0; i < traj.size(); i++) 
         {
             //float var = (count + i * delta);  
+            unitree::robot::go2::PathPoint p;
+
             p.timeFromStart = i * time_seg;
             p.x = traj[i][0];
             p.y = traj[i][1];
 
             float vector_x = p.x - state.position()[0];
             float vector_y = p.y - state.position()[1];
-            float distance = sqrt(vector_x*vector_x + vector_y*vector_y);  
-            float yaw = vector_y>0 ? acos(vector_x/distance):-acos(vector_x/distance);
+            float distance = sqrt(vector_x * vector_x + vector_y * vector_y);  
+            float yaw = vector_y > 0 ? acos(vector_x/distance) : -acos(vector_x/distance);
 
             p.yaw = yaw;
             p.vx = vx;
@@ -139,14 +137,14 @@ void Custom::Traj2Action()
 
         std::cout << "c: " << c << std::endl;
 
-        receive_flag = false;
+        // receive_flag = false;
 
     }
     
 }
 
 
-// Get the trajectory from the topic
+// Callback function to get the trajectory from the topic
 void Custom::GrabTraj(const geometry_msgs::Polygon::ConstPtr& msg)
 {
     
@@ -161,16 +159,15 @@ void Custom::GrabTraj(const geometry_msgs::Polygon::ConstPtr& msg)
         traj_temp.push_back(wp);
     }
 
-    // check if the 
-    if(!EXTRA_FUNT::areVectorsEqual(traj_temp, traj))
-    {
-        receive_flag = true;
-        traj = traj_temp;
-        std::cout << "Received Vaild Trajectory" << std::endl;
-    }
+    // if(!EXTRA_FUNT::areVectorsEqual(traj_temp, traj))
+    // {
+    //     receive_flag = true;
+    //     traj = traj_temp;
+    //     std::cout << "Received Vaild Trajectory" << std::endl;
+    // }
     
     // print the trajectory
-    std::cout << "the trajectory is as follows:" << std::endl;
+    std::cout << "the trajectory is:" << std::endl;
     for(const auto waypoint : traj)
     {
         std::cout << waypoint << std::endl;
@@ -180,21 +177,20 @@ void Custom::GrabTraj(const geometry_msgs::Polygon::ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "traj_to_action");
+    unitree::robot::ChannelFactory::Instance()->Init(0);
 
-    // print the environment variables
+    ros::init(argc, argv, "traj_to_action");
+    ros::NodeHandle nh;
+    
     ROS_INFO("ROS_MASTER_URI: %s", getenv("ROS_MASTER_URI"));
     ROS_INFO("ROS_IP: %s", getenv("ROS_IP"));
 
-    ros::NodeHandle nh;
-
-    // unitree::robot::ChannelFactory::Instance()->Init(0);
-    unitree::robot::ChannelFactory::Instance()->Init(0, argv[1]);
+    // unitree::robot::ChannelFactory::Instance()->Init(0, argv[1]);
     
     Custom custom;
-    
     custom.sport_client.SetTimeout(10.0f);
     custom.sport_client.Init();
+
     ros::Subscriber sub = nh.subscribe("planner/trajectory", 1, &Custom::GrabTraj, &custom);
 
     sleep(1);

@@ -19,10 +19,10 @@
 */
 
 
-#include<iostream>
-#include<algorithm>
-#include<fstream>
-#include<chrono>
+#include <iostream>
+#include <algorithm>
+#include <fstream>
+#include <chrono>
 
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -37,9 +37,10 @@
 #include <pcl/point_types.h>
 #include <pcl/common/transforms.h>
 
-#include<opencv2/core/core.hpp>
+#include <opencv2/core/core.hpp>
 
-#include"System.h"
+#include <System.h>
+#include <time.h>
 
 using namespace std;
 
@@ -70,10 +71,11 @@ int main(int argc, char **argv)
 
     ImageGrabber igb(&SLAM);
 
-    ros::NodeHandle nh;
+    ros::NodeHandle nh; 
 
     message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, "/camera/color/image_raw", 1);
     message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, "/camera/aligned_depth_to_color/image_raw", 1);
+
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
     message_filters::Synchronizer<sync_pol> sync(sync_pol(10), rgb_sub,depth_sub);
     sync.registerCallback(boost::bind(&ImageGrabber::GrabRGBD,&igb,_1,_2));
@@ -108,7 +110,7 @@ int main(int argc, char **argv)
         sensor_msgs::PointCloud2 output;
         pcl::toROSMsg(*global_map_copy,output);
 
-        //ROS_INFO("%d", global_map_copy->points.size());
+        ROS_INFO("global map points size: %d", global_map_copy->points.size());
         output.header.stamp=ros::Time::now();
         output.header.frame_id  ="global_map";
         pcl_pub.publish(output);
@@ -116,7 +118,7 @@ int main(int argc, char **argv)
         geometry_msgs::Point startPointMsg;
         startPointMsg.x = startPoint_ptr->x();
         startPointMsg.y = startPoint_ptr->y();
-        //printf("start point: %f, %f\n", startPoint_ptr->x(), startPoint_ptr->y());
+        printf("start point: %f, %f\n", startPoint_ptr->x(), startPoint_ptr->y());/
         startPoint_pub.publish(startPointMsg);
 
 
@@ -125,7 +127,12 @@ int main(int argc, char **argv)
     }
     if(SLAM.savePointCloud)
     {
-        pcl::io::savePCDFileASCII ("global_map.pcd", *global_map);
+        time_t currentTime = time(NULL);
+	    char chCurrentTime[256];
+	    strftime(chCurrentTime, sizeof(chCurrentTime), "%m%d%H%M", localtime(&currentTime));
+        string stCurrentTime = chCurrentTime;
+        string filename = "./maps/global_map_" + stCurrentTime + ".pcd";
+        pcl::io::savePCDFileASCII (filename, *global_map);
         cout << endl << "global_map saved! It has " <<global_map->points.size()<<" points."<< endl;
     }
     //pcl::io::savePCDFileASCII ("global_map.pcd", *global_map);

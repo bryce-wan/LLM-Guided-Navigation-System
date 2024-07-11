@@ -211,7 +211,7 @@ void PointCloudMapping::viewer()
         // voxel.filter( *globalMap );
         // cout<< "gobal map downsampling " <<ori_size<<"to "<< globalMap->points.size() << endl;
         //globalMap->swap( *tmp );
-        viewer.showCloud( globalMap );
+        viewer.showCloud(globalMap);
         //pcl::io::savePCDFile("globalMap.pcd", *globalMap);
         cout << "show global map, size=" << globalMap->points.size() << endl;
         lastKeyframeSize = N;

@@ -6,9 +6,9 @@
 
 # Camera calibration and distortion parameters (OpenCV) 
 Camera.fx: 605.396057
-Camera.fy: 605.227112
+Camera.fy: 605.227111
 Camera.cx: 316.978821
-Camera.cy: 253.316254
+Camera.cy: 253.316253
 
 Camera.k1: 0.0
 Camera.k2: 0.0
@@ -16,14 +16,14 @@ Camera.p1: 0.0
 Camera.p2: 0.0
 Camera.k3: 0.0
 
-Camera.width: 640
-Camera.height: 480
+Camera.width: 424
+Camera.height: 240
 
 # Camera frames per second 
 Camera.fps: 30.0
 
 # IR projector baseline times fx (aprox.) D435:0.05(50mm)*fx
-Camera.bf: 30.0
+Camera.bf: 15.0
 
 # Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
 Camera.RGB: 1
@@ -36,7 +36,8 @@ DepthMapFactor: 1000.0
 
 
 #Parameters about the camera and ground plane, used to transfer the occupancy map parallel to the ground
-Camera.toGround.theta: 1.2 #the tum dataset is 1.06
+# Camera.toGround.theta: 1.15 #the tum dataset is 1.06
+Camera.toGround.theta: 1.0 #the tum dataset is 1.06
 
 
 #--------------------------------------------------------------------------------------------
@@ -82,4 +83,9 @@ PointCloudMapping.Resolution: 0.01
 # save Parameters   0: don't save, 1: save
 #--------------------------------------------------------------------------------------------
 SaveFile.SavePose: 0
-SaveFile.SaveMap: 0
+SaveFile.SaveMap: 1
+
+#--------------------------------------------------------------------------------------------
+# unitree H1  camera flip  0: don't flip, 1: flip 180 degrees
+#--------------------------------------------------------------------------------------------
+UnitreeH1.flip: 0

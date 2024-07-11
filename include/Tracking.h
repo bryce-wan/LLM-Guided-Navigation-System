@@ -225,7 +225,7 @@ protected:
 
     list<MapPoint*> mlpTemporalPoints;
 
-    // for point cloud viewing
+    //For point cloud viewing
     shared_ptr<PointCloudMapping> mpPointCloudMapping;
 };
 

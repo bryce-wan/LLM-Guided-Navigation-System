@@ -7,6 +7,7 @@ control_aliengo/catkin_ws/build
 control_aliengo/catkin_ws/devel
 Examples/ROS/ORB_SLAM2/build/
 Examples/ROS/ORB_SLAM2/bin/
+.vscode/
 
 # files
 .swift-sfdc.json

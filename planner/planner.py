@@ -9,38 +9,42 @@ import random
 import os
 from copy import deepcopy
 from __tools__ import global2occupancy, occupancy2global, global_to_robot
-from __gloabl__ import  start_point, goal_point, num, start_points_list, path_robot
+from __global__ import  start_point, goal_point, num, start_points_list, path_robot
 
 
 def map_call_back(data):
+        
         print('Get the occupancy map!')
         map = data.data
-        #global map_array
         map_array_1d = np.array(map)
         map_h = data.info.height
         map_w = data.info.width 
         bias_x, bias_y, bias_z = data.info.origin.position.x, data.info.origin.position.y, data.info.origin.position.z
         ori_x, ori_y, ori_z = data.info.origin.orientation.x, data.info.origin.orientation.y, data.info.origin.orientation.z
+
+        print("------ MAP INFORAMTION ------")
+        print("map shape: ", map_h, map_w)
         print("oris: ", ori_x, ori_y, ori_z )
         print("bias: ", bias_x, bias_y, bias_z)
         map_array = map_array_1d.reshape(map_h, map_w)
-        #map_array = np.flipud(map_array)
-        #print(map_array.shape)
-        #print(map_array[0,0], map_array[0,1], map_array[1,0], map_array[1,1])
+        print("map array shape:", map_array.shape)
+
         free_index = np.where(map_array == 0)
         resolution = data.info.resolution
         global2occupancy_func = lambda x: global2occupancy(x, bias_x, bias_y, resolution)
         occupancy2global_func = lambda x: occupancy2global(x, bias_x, bias_y, resolution)
+
         global start_point
         global goal_point
+
+        # DEBUG: manually set the start and goal point
+        goal_point = np.array([-1.0, 1.0])
+        # start_point = np.array([-0.0, 0.0])
+
         print("start point: ", start_point)
         print("goal point: ", goal_point)
-        #for the debug
-        goal_point = np.array([-0.28, 7.9])
-        
-        if start_point is not None and goal_point is not None:
-                
 
+        if start_point is not None and goal_point is not None:
                 
                 #print("Start point: ", start_point)
                 # start_point -= np.array([bias_x, bias_y])
@@ -61,13 +65,16 @@ def map_call_back(data):
                 
                 
                 points = np.array([start_point, goal_point])
-                print("s and g: ", points)
+                print("start point and goal points in global map: ", points)
+
                 points_map = global2occupancy_func(points)
                 start_valid, goal_valid = points_map[0], points_map[1]
-                print(">>>>start and goal point valid evaluation(if value is 0, means valid)<<<<")
-                #if the start point is not valid, enforce the start point to be free space
+                print("start point and goal point in occupancy map: ", points_map)
+
+                print("------ POINT VALIDATION CHECK (VALID IF THE VALUE IS 0) ------")                
+                # if the start point is not valid, enforce the start point to be free space
                 map_array[start_valid[1], start_valid[0]] = 0
-                print(f"start point: {map_array[start_valid[1], start_valid[0]]}, goal_point: {map_array[goal_valid[1], goal_valid[0]]}")
+                print(f"start point check: {map_array[start_valid[1], start_valid[0]]}, goal point check: {map_array[goal_valid[1], goal_valid[0]]}")
 
                 # print("start_points: ", start_points[:5,], start_points.shape, bias_x, bias_y, map_array.shape)
                 # plt.imshow(map_array, interpolation='nearest')
@@ -115,49 +122,49 @@ def map_call_back(data):
                 #points = np.array([[12.15,8.8], [11.5, 18.7]])
                 #points = selected_indices
         
-                path = plan(points, 1.0, 'lazyprmstar', 'PathClearance', map_array, resolution, global2occupancy_func, occupancy2global_func)
+                # path planning
+                path = plan(points, 2.0, 'lazyprmstar', 'PathClearance', map_array, resolution, global2occupancy_func, occupancy2global_func)
                 print(path)
+                
                 plt.imshow(map_array, interpolation='nearest')
-                #points_map = global2occupancy(points, bias_x, bias_y, resolution)
+                
+                # points_map = global2occupancy(points, bias_x, bias_y, resolution)
                 plt.scatter(points_map[1,0], points_map[1,1], c='r', s=5)
                 plt.scatter(points_map[0,0], points_map[0,1], c='g', s=5)
+
                 if path is not None:
-                        #print(path)
                         path_map = global2occupancy(path, bias_x, bias_y, resolution)
                         plt.scatter(path_map[1:-1,0], path_map[1:-1,1], c='b', s=5)
-                        #plt.plot(path_map[:,0], path_map[:,1], 'b')
                         plt.show()
                         global path_robot
                         path_robot = global_to_robot(path)
                         print("path_robot: ", path_robot)
 
-                                
-                
-
                 start_point = None
                 goal_point = None
 
+
 def goal_point_call_back(data):
+        
         global goal_point
         goal_point = np.array([data.x, data.y])
+
         #TODO: get the goal point from the preception module
 
 
 def start_point_call_back(data):
 
-        #print('Get the start point!')
+        print('Get the start point!')
+        print(data.x, data.y)
         global start_point
         start_point = np.array([data.x, data.y])
-        #print(start_point)
 
 def ros_initialize():
-        #global map_receiver
-        #map_reciver = np.arra
-        #map_receiver = LifoQueue(maxsize=5)
+        
         rospy.init_node('planning', anonymous=True)
         rospy.Subscriber('/projected_map', OccupancyGrid, map_call_back, queue_size=10)
         rospy.Subscriber('orbslam2/startpoint', Point, start_point_call_back, queue_size=1)
-        rospy.Subscriber('visual_grounding/goalpoint', Point, goal_point_call_back, queue_size=10)
+        # rospy.Subscriber('visual_grounding/goalpoint', Point, goal_point_call_back, queue_size=10)
 
         pub = rospy.Publisher('planner/trajectory', Polygon, queue_size=1)
 
@@ -168,7 +175,7 @@ def ros_initialize():
                         path_robot_msg.points = [Point32(x=path_robot[i,0], y=path_robot[i,1]) for i in range(path_robot.shape[0])]
                         pub.publish(path_robot_msg)
                         #path_robot = None
-                        print("<<<<<<<trajectory published<<<<<<<")
+                        print("------ TRAJECTORY PUBLISHED ------")
                 rospy.sleep(0.1)
 
         # global num
@@ -209,15 +216,9 @@ def ros_initialize():
         #         #pub2.publish(temp)
         #         pub.publish(temp)
         #         pub1.publish(temp1)
-
         #         rate.sleep()
-        ########for debug
 
-
-
-        
         rospy.spin()
-#
 
 if __name__=='__main__':
 
